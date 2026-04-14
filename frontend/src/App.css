@@ -92,8 +92,24 @@ body {
   color: white;
 }
 
-.header.scrolled .nav-right {
-  color: #333;
+.header.solid {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  height: 72px;
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border);
+}
+
+.products-page .grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.products-page .card {
+  padding: 48px;
+  background: white;
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .icon-btn {
