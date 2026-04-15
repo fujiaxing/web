@@ -28,5 +28,12 @@ window.addEventListener('scroll', () => {
   });
 });
 
+// Initialize Lucide Icons
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+
 // Trigger scroll check on load
 window.dispatchEvent(new Event('scroll'));
