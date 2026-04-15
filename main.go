@@ -44,9 +44,9 @@ type Config struct {
 }
 
 var (
-	consultFile = "consultations.json"
-	configFile  = "config.json"
-	fileMutex   sync.Mutex
+	consultFile  = "consultations.json"
+	configFile   = "config.json"
+	fileMutex    sync.Mutex
 	globalConfig Config
 )
 
@@ -115,19 +115,19 @@ func main() {
 	}
 
 	r := gin.Default()
-	
+
 	// 从嵌入的文件系统加载模板
 	tmpl := template.Must(template.ParseFS(embeddedFiles, "templates/*.tmpl", "templates/partials/*.tmpl"))
 	r.SetHTMLTemplate(tmpl)
-	
+
 	r.Use(CORSMiddleware())
 
 	// 添加缓存控制中间件，设置图片等资源缓存7天 (7*24*3600秒)
-	r.Use(CacheControlMiddleware(7*24*3600))
+	r.Use(CacheControlMiddleware(7 * 24 * 3600))
 
 	// 从嵌入的文件系统提供静态资源
 	staticFS, _ := fs.Sub(embeddedFiles, "html")
-	
+
 	// 分别挂载子目录，确保 Gin 处理路径时不会出现双斜杠或找不到文件的问题
 	if sub, err := fs.Sub(staticFS, "js"); err == nil {
 		r.StaticFS("/js", http.FS(sub))
