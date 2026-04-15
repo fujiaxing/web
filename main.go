@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -73,6 +74,40 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
+// CacheControlMiddleware 缓存控制中间件
+func CacheControlMiddleware(maxAge int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 根据文件类型设置不同的缓存策略
+		switch {
+		case hasExt(c.Request.URL.Path, ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"):
+			// 图片文件设置较长的缓存时间
+			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge)) // 默认缓存7天
+			c.Header("Expires", time.Now().Add(time.Duration(maxAge)*time.Second).Format(http.TimeFormat))
+		case hasExt(c.Request.URL.Path, ".css", ".js"):
+			// CSS和JS文件也设置缓存
+			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
+		case hasExt(c.Request.URL.Path, ".ico", ".woff", ".woff2", ".ttf"):
+			// 字体和图标文件也设置缓存
+			c.Header("Cache-Control", fmt.Sprintf("public, max-age=%d", maxAge))
+		default:
+			// 其他文件不缓存
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		}
+		c.Next()
+	}
+}
+
+// hasExt 检查文件是否有指定扩展名
+func hasExt(path string, exts ...string) bool {
+	lowerPath := strings.ToLower(path)
+	for _, ext := range exts {
+		if strings.HasSuffix(lowerPath, strings.ToLower(ext)) {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	// 启动时加载配置
 	if err := loadConfig(); err != nil {
@@ -87,6 +122,9 @@ func main() {
 	
 	r.Use(CORSMiddleware())
 
+	// 添加缓存控制中间件，设置图片等资源缓存7天 (7*24*3600秒)
+	r.Use(CacheControlMiddleware(7*24*3600))
+
 	// 从嵌入的文件系统提供静态资源
 	staticFS, _ := fs.Sub(embeddedFiles, "html")
 	
@@ -96,6 +134,10 @@ func main() {
 	}
 	if sub, err := fs.Sub(staticFS, "css"); err == nil {
 		r.StaticFS("/css", http.FS(sub))
+	}
+	// 添加图片目录的静态服务
+	if sub, err := fs.Sub(staticFS, "images"); err == nil {
+		r.StaticFS("/images", http.FS(sub))
 	}
 
 	// 页面路由
