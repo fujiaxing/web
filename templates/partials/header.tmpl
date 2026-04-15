@@ -27,8 +27,26 @@
             <div class="nav-right">
                 <i data-lucide="search" class="icon-btn"></i>
                 <i data-lucide="globe" class="icon-btn"></i>
-                <a href="#" class="btn btn-outline" style="padding: 10px 24px; font-size: 14px; margin-left: 10px;">立即咨询</a>
+                <a href="#" class="btn btn-outline consult-btn" style="padding: 10px 24px; font-size: 14px; margin-left: 10px;">立即咨询</a>
+                <i data-lucide="menu" class="icon-btn mobile-menu-btn" style="display: none; margin-left: 15px;"></i>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay">
+        <div class="mobile-nav-content">
+            <div class="mobile-nav-header">
+                <a href="/" class="logo" style="color: var(--primary) !important;">yonyou</a>
+                <i data-lucide="x" class="close-mobile-menu"></i>
+            </div>
+            <ul class="mobile-nav-links">
+                <li><a href="/products">产品与服务</a></li>
+                <li><a href="#">行业解决方案</a></li>
+                <li><a href="#">数智平台</a></li>
+                <li><a href="/about">关于我们</a></li>
+                <li style="margin-top: 30px;"><a href="#" class="btn btn-primary consult-btn" style="width: 100%;">立即咨询</a></li>
+            </ul>
+        </div>
+    </div>
 {{ end }}
