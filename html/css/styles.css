@@ -137,7 +137,8 @@ header.scrolled .nav-right, header.solid .nav-right {
   height: 100vh;
   display: flex;
   align-items: center;
-  background: #000;
+  background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2000') no-repeat center center;
+  background-size: cover;
   color: white;
   position: relative;
   overflow: hidden;

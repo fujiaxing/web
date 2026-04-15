@@ -1,35 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>关于我们 | 武汉兴诺佳盛 - 用友网络湖北核心合作伙伴</title>
-    <meta name="description" content="武汉兴诺佳盛科技有限公司是用友网络及致远互联在湖北地区的核心合作伙伴，提供专业的企业管理咨询、软件销售、实施及定制开发服务。">
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
-    <div id="progress-bar"></div>
-
-    <header class="solid">
-        <div class="container" style="display: flex; align-items: center; width: 100%;">
-            <a href="index.html" class="logo">yonyou</a>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="products.html">产品与服务</a></li>
-                    <li><a href="#">行业解决方案</a></li>
-                    <li><a href="#">数智平台</a></li>
-                    <li><a href="about.html">关于我们</a></li>
-                </ul>
-            </nav>
-            <div class="nav-right">
-                <i data-lucide="search" class="icon-btn"></i>
-                <i data-lucide="globe" class="icon-btn"></i>
-                <a href="#" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px; margin-left: 10px;">立即咨询</a>
-            </div>
-        </div>
-    </header>
-
+{{ template "header" . }}
     <main>
         <!-- About Hero -->
         <section class="section bg-dark" style="padding-top: 200px; padding-bottom: 120px; text-align: center; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1600') center/cover !important;">
@@ -108,7 +77,9 @@
                     <h2>资质荣誉</h2>
                     <p>权威认证，见证兴诺佳盛的专业服务实力</p>
                 </div>
-                <div class="grid" style="grid-template-columns: repeat(4, 1fr);">
+                
+                <!-- Original Icons -->
+                <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 60px;">
                     <div class="reveal" style="text-align: center;">
                         <div style="width: 100%; aspect-ratio: 1/1.4; background: #fff; border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: all 0.4s; cursor: pointer; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-10px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)';">
                             <i data-lucide="award" style="width: 60px; height: 60px; color: var(--primary); margin-bottom: 20px;"></i>
@@ -138,6 +109,36 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- New Honor Images -->
+                <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 30px;">
+                    <!-- Image 1: 核心授权合作伙伴 -->
+                    <div class="reveal" style="text-align: center;">
+                        <div style="width: 100%; aspect-ratio: 1/1.4; background: #fff; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; transition: all 0.4s; cursor: pointer; box-shadow: var(--shadow-sm); overflow: hidden;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-10px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+                            <img src="https://img.hbyonyou.cn/gx.png" alt="用友核心授权合作伙伴" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                        </div>
+                        <div style="font-weight: 800; color: #333; font-size: 18px; margin-top: 20px;">高新技术企业</div>
+                        <div style="font-size: 14px; color: #888; margin-top: 8px;">核心授权合作伙伴</div>
+                    </div>
+
+                    <!-- Image 2: 2023 荣誉证书 -->
+                    <div class="reveal" style="text-align: center;">
+                        <div style="width: 100%; aspect-ratio: 1/1.4; background: #fff; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; transition: all 0.4s; cursor: pointer; box-shadow: var(--shadow-sm); overflow: hidden;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-10px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+                            <img src="https://img.hbyonyou.cn/zs_2023.jpg" alt="2023 荣誉证书" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                        </div>
+                        <div style="font-weight: 800; color: #333; font-size: 18px; margin-top: 20px;">用友网络</div>
+                        <div style="font-size: 14px; color: #888; margin-top: 8px;">2023年度杰出贡献奖</div>
+                    </div>
+
+                    <!-- Image 3: 2022 荣誉证书 -->
+                    <div class="reveal" style="text-align: center;">
+                        <div style="width: 100%; aspect-ratio: 1/1.4; background: #fff; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; transition: all 0.4s; cursor: pointer; box-shadow: var(--shadow-sm); overflow: hidden;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-10px)'; this.style.boxShadow='var(--shadow-lg)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+                            <img src="https://img.hbyonyou.cn/zs_2022.jpg" alt="2022 荣誉证书" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                        </div>
+                        <div style="font-weight: 800; color: #333; font-size: 18px; margin-top: 20px;">荣誉证书</div>
+                        <div style="font-size: 14px; color: #888; margin-top: 8px;">2022年度优秀合作伙伴</div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -156,91 +157,4 @@
             </div>
         </section>
     </main>
-
-    <footer>
-        <div class="container">
-            <div class="footer-top">
-                <div style="flex: 1.5;">
-                    <a href="index.html" class="footer-logo">yonyou</a>
-                    <p style="margin-top: 24px; max-width: 300px;">武汉兴诺佳盛科技有限公司 - 湖北地区领先的 IT 咨询与服务提供商，服务企业数智化，进无止境。</p>
-                    <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px; color: white; font-weight: 600;">
-                        <div style="display: flex; align-items: center; font-size: 20px;">
-                            <i data-lucide="phone-call" style="margin-right: 12px; color: var(--primary);"></i> 13618655610
-                        </div>
-                        <div style="display: flex; align-items: center; font-size: 16px; color: #999;">
-                            <i data-lucide="mail" style="margin-right: 12px; color: var(--primary);"></i> service@hbyonyou.cn
-                        </div>
-                        <div style="display: flex; align-items: center; font-size: 16px; color: #999;">
-                            <i data-lucide="map-pin" style="margin-right: 12px; color: var(--primary);"></i> 武汉市武昌区中北路龙源大厦
-                        </div>
-                        <div style="display: flex; align-items: center; font-size: 14px; color: var(--primary); margin-top: 10px;">
-                            <i data-lucide="clock" style="margin-right: 12px;"></i> 7×24小时 业务咨询服务
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <h4>产品</h4>
-                    <ul>
-                        <li><a href="products.html">用友 BIP</a></li>
-                        <li><a href="#">NC Cloud</a></li>
-                        <li><a href="#">YonSuite</a></li>
-                        <li><a href="#">U9 Cloud</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>服务支持</h4>
-                    <ul>
-                        <li><a href="#">咨询演示</a></li>
-                        <li><a href="#">实施服务</a></li>
-                        <li><a href="#">定制开发</a></li>
-                        <li><a href="#">运维支持</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>关于我们</h4>
-                    <ul>
-                        <li><a href="about.html">公司介绍</a></li>
-                        <li><a href="#">联系我们</a></li>
-                        <li><a href="#">加入我们</a></li>
-                        <li><a href="#">法律声明</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 武汉兴诺佳盛科技有限公司 京ICP备05006336号</p>
-            </div>
-        </div>
-    </footer>
-
-    <div class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close"><i data-lucide="x"></i></span>
-            <div class="modal-header">
-                <h2>立即咨询</h2>
-                <p>请留下您的信息，我们将安排专业顾问为您回电</p>
-            </div>
-            <form id="consultationForm">
-                <div class="form-group">
-                    <label for="name">姓名</label>
-                    <input type="text" id="name" name="name" placeholder="请输入您的姓名" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">手机号</label>
-                    <input type="tel" id="phone" name="phone" placeholder="请输入您的手机号" required pattern="^1[3-9]\d{9}$">
-                </div>
-                <div class="form-group">
-                    <label for="company">公司名称</label>
-                    <input type="text" id="company" name="company" placeholder="请输入公司名称" required>
-                </div>
-                <div class="form-group">
-                    <label for="needs">咨询需求</label>
-                    <textarea id="needs" name="needs" placeholder="请简述您的需求，以便我们为您匹配专家" rows="4"></textarea>
-                </div>
-                <button type="submit" class="submit-btn">预约回电</button>
-            </form>
-        </div>
-    </div>
-
-    <script src="js/main.js"></script>
-</body>
-</html>
+{{ template "footer" . }}

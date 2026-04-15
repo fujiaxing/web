@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"net/smtp"
@@ -18,14 +20,38 @@ type ConsultRequest struct {
 	Name    string `json:"name" binding:"required"`
 	Phone   string `json:"phone" binding:"required"`
 	Email   string `json:"email"`
+	Company string `json:"company"`
+	Needs   string `json:"needs"`
 	Content string `json:"content"`
 	Time    string `json:"time"`
 }
 
+// Config 配置结构体
+type Config struct {
+	SMTP struct {
+		From     string `json:"from"`
+		Password string `json:"password"`
+		To       string `json:"to"`
+		Host     string `json:"host"`
+		Port     string `json:"port"`
+	} `json:"smtp"`
+}
+
 var (
 	consultFile = "consultations.json"
+	configFile  = "config.json"
 	fileMutex   sync.Mutex
+	globalConfig Config
 )
+
+// loadConfig 从文件加载配置
+func loadConfig() error {
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, &globalConfig)
+}
 
 // CORS 中间件
 func CORSMiddleware() gin.HandlerFunc {
@@ -43,8 +69,43 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
+	// 启动时加载配置
+	if err := loadConfig(); err != nil {
+		log.Printf("Warning: failed to load config: %v", err)
+	}
+
 	r := gin.Default()
+	
+	// 加载所有模板文件 (包括子目录)
+	tmpl := template.Must(template.ParseGlob("templates/*.tmpl"))
+	template.Must(tmpl.ParseGlob("templates/partials/*.tmpl"))
+	r.SetHTMLTemplate(tmpl)
+	
 	r.Use(CORSMiddleware())
+
+	// 静态资源服务 (保持 js/css/images 可访问)
+	r.Static("/js", "./html/js")
+	r.Static("/css", "./html/css")
+	r.Static("/images", "./html/images")
+
+	// 页面路由
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"Title": "首页",
+		})
+	})
+
+	r.GET("/products", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "products.tmpl", gin.H{
+			"Title": "产品与服务",
+		})
+	})
+
+	r.GET("/about", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "about.tmpl", gin.H{
+			"Title": "关于我们",
+		})
+	})
 
 	// 1. 存储并发送咨询信息的 API
 	r.POST("/api/consult", func(c *gin.Context) {
@@ -68,9 +129,6 @@ func main() {
 			"message": "咨询信息已提交，我们会尽快与您联系！",
 		})
 	})
-
-	// 静态资源服务
-	r.Static("/", "./html")
 
 	fmt.Println("Server starting on :8080...")
 	r.Run(":8080")
@@ -98,38 +156,99 @@ func saveConsultation(req ConsultRequest) error {
 
 // sendEmail 发送邮件 (需要配置真实的 SMTP 信息)
 func sendEmail(req ConsultRequest) {
-	// --- 配置区 ---
-	from := "fjx@hbyonyou.cn"    // 发件人邮箱
-	password := "E2SmFsS8suTcRgd4"    // 邮箱授权码/密码
-	to := "service@hbyonyou.cn"    // 收件人邮箱 (指定邮箱)
-	smtpHost := "smtp.exmail.qq.com"      // SMTP 服务器 (如 smtp.qq.com)
-	smtpPort := "465"                   // SMTP 端口
-	// --------------
+	// 从全局配置读取
+	from := globalConfig.SMTP.From
+	password := globalConfig.SMTP.Password
+	to := globalConfig.SMTP.To
+	smtpHost := globalConfig.SMTP.Host
+	smtpPort := globalConfig.SMTP.Port
 
 	// 如果未配置，则跳过发送
-	if from == "fjx@hbyonyou.cn" {
+	if from == "" || password == "" {
 		log.Println("Email not sent: SMTP credentials not configured")
 		return
 	}
 
-	subject := "Subject: 【立即咨询】来自客户的数智化需求\n"
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	header := make(map[string]string)
+	header["From"] = from
+	header["To"] = to
+	header["Subject"] = "【立即咨询】来自客户的数智化需求"
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html; charset=\"UTF-8\""
+
+	message := ""
+	for k, v := range header {
+		message += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+
 	body := fmt.Sprintf(`
 		<h3>收到新的咨询信息</h3>
 		<p><b>姓名：</b>%s</p>
 		<p><b>电话：</b>%s</p>
-		<p><b>邮箱：</b>%s</p>
-		<p><b>内容：</b>%s</p>
+		<p><b>公司：</b>%s</p>
+		<p><b>需求：</b>%s</p>
 		<p><b>提交时间：</b>%s</p>
-	`, req.Name, req.Phone, req.Email, req.Content, req.Time)
+	`, req.Name, req.Phone, req.Company, req.Needs, req.Time)
 
-	msg := []byte(subject + mime + body)
+	message += "\r\n" + body
+
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
+	// TLS config
+	tlsconfig := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         smtpHost,
+	}
+
+	// Connect to the SMTP Server
+	conn, err := tls.Dial("tcp", smtpHost+":"+smtpPort, tlsconfig)
 	if err != nil {
-		log.Printf("Email send failed: %v", err)
+		log.Printf("Email TLS dial failed: %v", err)
 		return
 	}
+
+	client, err := smtp.NewClient(conn, smtpHost)
+	if err != nil {
+		log.Printf("Email new client failed: %v", err)
+		return
+	}
+
+	// Auth
+	if err = client.Auth(auth); err != nil {
+		log.Printf("Email auth failed: %v", err)
+		return
+	}
+
+	// To && From
+	if err = client.Mail(from); err != nil {
+		log.Printf("Email mail from failed: %v", err)
+		return
+	}
+
+	if err = client.Rcpt(to); err != nil {
+		log.Printf("Email rcpt to failed: %v", err)
+		return
+	}
+
+	// Data
+	w, err := client.Data()
+	if err != nil {
+		log.Printf("Email data failed: %v", err)
+		return
+	}
+
+	_, err = w.Write([]byte(message))
+	if err != nil {
+		log.Printf("Email write failed: %v", err)
+		return
+	}
+
+	err = w.Close()
+	if err != nil {
+		log.Printf("Email close failed: %v", err)
+		return
+	}
+
+	client.Quit()
 	log.Println("Email sent successfully")
 }

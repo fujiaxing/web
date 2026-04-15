@@ -93,19 +93,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData(consultationForm);
       const data = Object.fromEntries(formData.entries());
       
-      // Simulating an API call
       const submitBtn = consultationForm.querySelector('.submit-btn');
       const originalBtnText = submitBtn.textContent;
       submitBtn.textContent = '提交中...';
       submitBtn.disabled = true;
 
-      setTimeout(() => {
-        alert('提交成功！我们将尽快为您回电。');
-        submitBtn.textContent = originalBtnText;
-        submitBtn.disabled = false;
+      fetch('/api/consult', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('网络请求错误');
+        }
+        return response.json();
+      })
+      .then(result => {
+        alert(result.message || '提交成功！我们将尽快为您回电。');
         consultationForm.reset();
         closeModal();
-      }, 1500);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('提交失败，请稍后重试或直接拨打我们的电话。');
+      })
+      .finally(() => {
+        submitBtn.textContent = originalBtnText;
+        submitBtn.disabled = false;
+      });
     });
   }
 });
