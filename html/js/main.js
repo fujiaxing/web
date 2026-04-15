@@ -37,3 +37,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Trigger scroll check on load
 window.dispatchEvent(new Event('scroll'));
+
+// Modal Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.querySelector('.modal-overlay');
+  const openModalBtns = document.querySelectorAll('.consult-btn, .btn-outline, .btn-primary'); // Add more selectors if needed
+  const closeModalBtn = document.querySelector('.modal-close');
+  const modalContent = document.querySelector('.modal-content');
+  const consultationForm = document.getElementById('consultationForm');
+
+  const openModal = () => {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  };
+
+  // Find all buttons that say "立即咨询" or matches relevant classes
+  const allBtns = document.querySelectorAll('.btn, .icon-btn');
+  allBtns.forEach(btn => {
+    if (btn.textContent.includes('立即咨询') || btn.classList.contains('consult-btn')) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+      });
+    }
+  });
+
+  // Floating action button
+  const fab = document.querySelector('.floating-btn');
+  if (fab) {
+    fab.addEventListener('click', openModal);
+  }
+
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeModal);
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Handle Form Submission
+  if (consultationForm) {
+    consultationForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(consultationForm);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Simulating an API call
+      const submitBtn = consultationForm.querySelector('.submit-btn');
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.textContent = '提交中...';
+      submitBtn.disabled = true;
+
+      setTimeout(() => {
+        alert('提交成功！我们将尽快为您回电。');
+        submitBtn.textContent = originalBtnText;
+        submitBtn.disabled = false;
+        consultationForm.reset();
+        closeModal();
+      }, 1500);
+    });
+  }
+});
