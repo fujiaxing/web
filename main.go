@@ -2,9 +2,11 @@ package main
 
 import (
 	"crypto/tls"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"net/smtp"
@@ -14,6 +16,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+//go:embed html templates
+var embeddedFiles embed.FS
 
 // ConsultRequest 咨询请求结构
 type ConsultRequest struct {
@@ -76,17 +81,22 @@ func main() {
 
 	r := gin.Default()
 	
-	// 加载所有模板文件 (包括子目录)
-	tmpl := template.Must(template.ParseGlob("templates/*.tmpl"))
-	template.Must(tmpl.ParseGlob("templates/partials/*.tmpl"))
+	// 从嵌入的文件系统加载模板
+	tmpl := template.Must(template.ParseFS(embeddedFiles, "templates/*.tmpl", "templates/partials/*.tmpl"))
 	r.SetHTMLTemplate(tmpl)
 	
 	r.Use(CORSMiddleware())
 
-	// 静态资源服务 (保持 js/css/images 可访问)
-	r.Static("/js", "./html/js")
-	r.Static("/css", "./html/css")
-	r.Static("/images", "./html/images")
+	// 从嵌入的文件系统提供静态资源
+	staticFS, _ := fs.Sub(embeddedFiles, "html")
+	
+	// 分别挂载子目录，确保 Gin 处理路径时不会出现双斜杠或找不到文件的问题
+	if sub, err := fs.Sub(staticFS, "js"); err == nil {
+		r.StaticFS("/js", http.FS(sub))
+	}
+	if sub, err := fs.Sub(staticFS, "css"); err == nil {
+		r.StaticFS("/css", http.FS(sub))
+	}
 
 	// 页面路由
 	r.GET("/", func(c *gin.Context) {
@@ -130,8 +140,8 @@ func main() {
 		})
 	})
 
-	fmt.Println("Server starting on :8080...")
-	r.Run(":8080")
+	fmt.Println("Server starting on :9000...")
+	r.Run(":9000")
 }
 
 // saveConsultation 将咨询信息保存到 JSON 文件
