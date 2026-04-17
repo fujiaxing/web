@@ -54,7 +54,11 @@ var (
 	configFile   = "config.json"
 	fileMutex    sync.Mutex
 	globalConfig Config
+	// 信号量：限制同时处理图片的并发数，防止大图解压撑爆内存
+	imageSemaphore = make(chan struct{}, 2)
 )
+
+const maxCompressSize = 5 * 1024 * 1024 // 超过 5MB 的图片不执行动态压缩，直接透传
 
 // loadConfig 从文件加载配置
 func loadConfig() error {
@@ -150,35 +154,64 @@ func main() {
 		cleanPath := strings.TrimPrefix(path, "/")
 		fullPath := filepath.Join("html/images", cleanPath)
 
-		// 如果没有质量参数，直接提供原始文件
-		if qStr == "" {
-			data, err := embeddedFiles.ReadFile(fullPath)
-			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
-				return
-			}
-			c.Data(http.StatusOK, http.DetectContentType(data), data)
+		// 1. 基础检查：获取文件信息
+		f, err := embeddedFiles.Open(fullPath)
+		if err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		defer f.Close()
+
+		fi, err := f.Stat()
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		// 2. 如果没有质量参数，或者文件太大(>5MB)，直接提供原始文件流
+		if qStr == "" || fi.Size() > maxCompressSize {
+			c.DataFromReader(http.StatusOK, fi.Size(), http.DetectContentType([]byte(cleanPath)), f, nil)
 			return
 		}
 
 		quality, err := strconv.Atoi(qStr)
 		if err != nil || quality <= 0 || quality > 100 {
-			quality = 80 // 默认质量
+			quality = 80
 		}
 
-		// 仅对 .jpg 或 .jpeg 执行压缩逻辑
+		// 3. 仅对 .jpg 或 .jpeg 执行压缩逻辑
 		ext := strings.ToLower(filepath.Ext(cleanPath))
 		if ext == ".jpg" || ext == ".jpeg" {
-			file, err := embeddedFiles.Open(fullPath)
+			// 尺寸预检：先读取元数据，不解码全图
+			config, _, err := image.DecodeConfig(f)
+			if err == nil {
+				// 如果分辨率超过 3000 像素，为了内存安全，不进行动态处理
+				if config.Width > 3000 || config.Height > 3000 {
+					// 重新读取原图数据返回
+					data, _ := embeddedFiles.ReadFile(fullPath)
+					c.Data(http.StatusOK, "image/jpeg", data)
+					return
+				}
+			}
+			
+			// 重置文件指针位置（由于 DecodeConfig 已经读了头部数据）
+			// embed.FS 的文件流不支持 Seek，所以我们需要重新打开文件
+			f.Close()
+			f, err = embeddedFiles.Open(fullPath)
 			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
+				data, _ := embeddedFiles.ReadFile(fullPath)
+				c.Data(http.StatusOK, "image/jpeg", data)
 				return
 			}
-			defer file.Close()
+			defer f.Close()
 
-			img, _, err := image.Decode(file)
+			// 获取信号量：如果已有2个任务在处理，则在此阻塞，直到其他任务完成
+			imageSemaphore <- struct{}{}
+			defer func() { <-imageSemaphore }()
+
+			img, _, err := image.Decode(f)
 			if err != nil {
-				// 解码失败，回退到原始文件
+				// 解码失败，回退到原始输出
 				data, _ := embeddedFiles.ReadFile(fullPath)
 				c.Data(http.StatusOK, http.DetectContentType(data), data)
 				return
@@ -193,13 +226,8 @@ func main() {
 			return
 		}
 
-		// 对于其他格式（如 .png），目前直接透传（PNG 无原生质量参数）
-		data, err := embeddedFiles.ReadFile(fullPath)
-		if err != nil {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		c.Data(http.StatusOK, http.DetectContentType(data), data)
+		// 其他格式直接返回
+		c.DataFromReader(http.StatusOK, fi.Size(), http.DetectContentType([]byte(cleanPath)), f, nil)
 	})
 
 	// 页面路由
