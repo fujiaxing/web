@@ -153,6 +153,12 @@ func main() {
 		})
 	})
 
+	r.GET("/solutions", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "solutions.tmpl", gin.H{
+			"Title": "行业解决方案",
+		})
+	})
+
 	r.GET("/about", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "about.tmpl", gin.H{
 			"Title": "关于我们",
