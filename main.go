@@ -159,6 +159,12 @@ func main() {
 		})
 	})
 
+	r.GET("/platform", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "platform.tmpl", gin.H{
+			"Title": "数智平台",
+		})
+	})
+
 	r.GET("/about", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "about.tmpl", gin.H{
 			"Title": "关于我们",

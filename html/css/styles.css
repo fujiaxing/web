@@ -745,6 +745,16 @@ footer a:hover {
   background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://hbyonyou.cn/web/photo-1497366216548-37526070297c.jpg?auto=format&fit=crop&q=80&w=1600') center/cover !important;
 }
 
+.platform-hero {
+  padding-top: 220px !important;
+  padding-bottom: 140px !important;
+  text-align: center;
+  background: radial-gradient(circle at 20% 30%, rgba(238, 34, 35, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 80% 70%, rgba(238, 34, 35, 0.1) 0%, transparent 40%),
+              linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.9)),
+              url('/images/web/photo-1550751827-4bd374c3f58b.jpg?auto=format&fit=crop&q=80&w=1200') center/cover !important;
+}
+
 .feature-mini-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
