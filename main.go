@@ -6,11 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"image"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
 	"io/fs"
 	"log"
 	"net/http"
 	"net/smtp"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -135,10 +141,66 @@ func main() {
 	if sub, err := fs.Sub(staticFS, "css"); err == nil {
 		r.StaticFS("/css", http.FS(sub))
 	}
-	// 添加图片目录的静态服务
-	if sub, err := fs.Sub(staticFS, "images"); err == nil {
-		r.StaticFS("/images", http.FS(sub))
-	}
+	// 动态图像处理路由，支持 q (quality) 参数
+	r.GET("/images/*filepath", func(c *gin.Context) {
+		path := c.Param("filepath")
+		qStr := c.Query("q")
+
+		// 移除开头的斜杠
+		cleanPath := strings.TrimPrefix(path, "/")
+		fullPath := filepath.Join("html/images", cleanPath)
+
+		// 如果没有质量参数，直接提供原始文件
+		if qStr == "" {
+			data, err := embeddedFiles.ReadFile(fullPath)
+			if err != nil {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+			c.Data(http.StatusOK, http.DetectContentType(data), data)
+			return
+		}
+
+		quality, err := strconv.Atoi(qStr)
+		if err != nil || quality <= 0 || quality > 100 {
+			quality = 80 // 默认质量
+		}
+
+		// 仅对 .jpg 或 .jpeg 执行压缩逻辑
+		ext := strings.ToLower(filepath.Ext(cleanPath))
+		if ext == ".jpg" || ext == ".jpeg" {
+			file, err := embeddedFiles.Open(fullPath)
+			if err != nil {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+			defer file.Close()
+
+			img, _, err := image.Decode(file)
+			if err != nil {
+				// 解码失败，回退到原始文件
+				data, _ := embeddedFiles.ReadFile(fullPath)
+				c.Data(http.StatusOK, http.DetectContentType(data), data)
+				return
+			}
+
+			// 动态压缩并输出
+			c.Header("Content-Type", "image/jpeg")
+			err = jpeg.Encode(c.Writer, img, &jpeg.Options{Quality: quality})
+			if err != nil {
+				log.Printf("JPEG compression failed: %v", err)
+			}
+			return
+		}
+
+		// 对于其他格式（如 .png），目前直接透传（PNG 无原生质量参数）
+		data, err := embeddedFiles.ReadFile(fullPath)
+		if err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		c.Data(http.StatusOK, http.DetectContentType(data), data)
+	})
 
 	// 页面路由
 	r.GET("/", func(c *gin.Context) {

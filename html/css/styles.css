@@ -742,7 +742,7 @@ footer a:hover {
   padding-top: 200px !important;
   padding-bottom: 120px !important;
   text-align: center;
-  background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://hbyonyou.cn/web/photo-1497366216548-37526070297c.jpg?auto=format&fit=crop&q=80&w=1600') center/cover !important;
+  background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/images/web/photo-1497366216548-37526070297c.jpg?auto=format&fit=crop&q=80&w=1600') center/cover !important;
 }
 
 .platform-hero {
